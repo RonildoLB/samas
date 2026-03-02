@@ -1,0 +1,23 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+.light {
+  padding: 10px;
+  border-radius: 6px;
+  background: #555;
+  color: white;
+  text-align: center;
+}
+
+.light.on {
+  background: #00c853; /* verde */
+}
+
+.btn {
+  padding: 10px;
+  font-size: 18px;
+}

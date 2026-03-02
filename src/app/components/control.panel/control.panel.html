@@ -1,0 +1,21 @@
+<div class="container">
+
+  <!-- Luz conectado -->
+  <div class="light" [class.on]="connected">Conectado</div>
+
+  <!-- Luz ligado -->
+  <div class="light" [class.on]="ledOn">Ligado</div>
+
+  <button (click)="connect()" class="btn">
+    Conectar
+  </button>
+
+  <button (click)="turnOn()" class="btn" [disabled]="!connected">
+    Ligar
+  </button>
+
+  <button (click)="turnOff()" class="btn" [disabled]="!connected">
+    Desligar
+  </button>
+
+</div>
