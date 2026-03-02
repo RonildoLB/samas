@@ -18,4 +18,13 @@ export class EspService {
   desligar() {
     return this.http.post(`${this.baseUrl}/off`, {});
   }
+
+  setTime(dia: number, mes: number, ano: number, hora: number, min: number, seg: number) {
+  const url = `${this.baseUrl}/settime?dia=${dia}&mes=${mes}&ano=${ano}&hora=${hora}&min=${min}&seg=${seg}`;
+  return this.http.get(url, { responseType: 'text' });
+  }
+
+  getTime() {
+    return this.http.get(`${this.baseUrl}/gettime`);
+  }
 }

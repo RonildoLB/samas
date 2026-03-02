@@ -6,16 +6,59 @@
   <!-- Luz ligado -->
   <div class="light" [class.on]="ledOn">Ligado</div>
 
-  <button (click)="connect()" class="btn">
-    Conectar
+  <button (click)="connect()" class="btn">Conectar</button>
+  <button (click)="turnOn()" class="btn">Ligar</button>
+  <button (click)="turnOff()" class="btn">Desligar</button>
+
+  <h2>Definir Data</h2>
+
+  <div class="campo">
+    <label>Dia:</label>
+    <input type="number" [(ngModel)]="dia">
+  </div>
+
+  <div class="campo">
+    <label>Mês:</label>
+    <input type="number" [(ngModel)]="mes">
+  </div>
+
+  <div class="campo">
+    <label>Ano:</label>
+    <input type="number" [(ngModel)]="ano">
+  </div>
+
+  <h2>Definir Horário</h2>
+
+  <div class="campo">
+    <label>Hora:</label>
+    <input type="number" [(ngModel)]="hora">
+  </div>
+
+  <div class="campo">
+    <label>Minuto:</label>
+    <input type="number" [(ngModel)]="min">
+  </div>
+
+  <div class="campo">
+    <label>Segundo:</label>
+    <input type="number" [(ngModel)]="seg">
+  </div>
+
+  <button class="btn" (click)="enviarDataHora()">
+    Enviar Data/Hora para ESP
   </button>
 
-  <button (click)="turnOn()" class="btn">
-    Ligar
+  <hr>
+
+  <h2>Consultar Hora do ESP</h2>
+
+  <button class="btn" (click)="lerHoraEsp()">
+    Ler Hora do ESP
   </button>
 
-  <button (click)="turnOff()" class="btn">
-    Desligar
-  </button>
+  <div class="resultado">
+    <h3>Hora recebida:</h3>
+    <p>{{ horaRecebida }}</p>
+  </div>
 
 </div>
