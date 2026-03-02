@@ -12,11 +12,11 @@ export class EspService {
   }
 
   ligar() {
-    return this.http.post(`${this.baseUrl}/on`, {});
+    return this.http.get(`${this.baseUrl}/ligar?turn=on`, {});
   }
 
   desligar() {
-    return this.http.post(`${this.baseUrl}/off`, {});
+    return this.http.post(`${this.baseUrl}/ligar?turn=off`, {});
   }
 
   setTime(dia: number, mes: number, ano: number, hora: number, min: number, seg: number) {
