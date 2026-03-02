@@ -16,7 +16,7 @@ export class EspService {
   }
 
   desligar() {
-    return this.http.post(`${this.baseUrl}/ligar?turn=off`, {});
+    return this.http.get(`${this.baseUrl}/ligar?turn=off`, {});
   }
 
   setTime(dia: number, mes: number, ano: number, hora: number, min: number, seg: number) {
