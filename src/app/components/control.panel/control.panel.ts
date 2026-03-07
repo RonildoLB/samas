@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { EspService } from '../../services/esp.service';
 import { FormsModule } from '@angular/forms';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-control-panel',
@@ -21,26 +22,24 @@ export class ControlPanel {
 
   horaRecebida: string | null = null;
 
-  constructor(private esp: EspService) {}
+  constructor(private esp: EspService, private cdr: ChangeDetectorRef) {}
 
-  connect() {
-    this.esp.status().subscribe({
-      next: (d: any) => {
-        this.connected = true;
-        this.ledOn = d.led === 1;
-      },
-      error: () => {
-        this.connected = false;
-      }
+  turnOn() {
+    this.esp.ligar().subscribe((resp) => {
+      console.log(resp);
+      this.ledOn = true;
+      console.log(this.ledOn);
+      this.cdr.detectChanges();
     });
   }
 
-  turnOn() {
-    this.esp.ligar().subscribe(() => this.ledOn = true);
-  }
-
   turnOff() {
-    this.esp.desligar().subscribe(() => this.ledOn = false);
+    this.esp.desligar().subscribe((resp) => {
+      console.log(resp);
+      this.ledOn = false;
+      console.log(this.ledOn);
+      this.cdr.detectChanges();
+    });
   }
 
   enviarDataHora() {
@@ -54,6 +53,7 @@ export class ControlPanel {
     this.esp.getTime().subscribe(t => {
       console.log("ESP TIME:", t);
       this.horaRecebida = JSON.stringify(t);
+      this.cdr.detectChanges();
     });
   }
 }

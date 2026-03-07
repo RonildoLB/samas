@@ -7,16 +7,12 @@ export class EspService {
 
   constructor(private http: HttpClient) {}
 
-  status() {
-    return this.http.get(`${this.baseUrl}/status`);
-  }
-
   ligar() {
-    return this.http.get(`${this.baseUrl}/ligar?turn=on`, {});
+    return this.http.get(`${this.baseUrl}/on`, {});
   }
 
   desligar() {
-    return this.http.get(`${this.baseUrl}/ligar?turn=off`, {});
+    return this.http.get(`${this.baseUrl}/off`, {});
   }
 
   setTime(dia: number, mes: number, ano: number, hora: number, min: number, seg: number) {
