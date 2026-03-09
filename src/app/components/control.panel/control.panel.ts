@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { EspService } from '../../services/esp.service';
 import { FormsModule } from '@angular/forms';
 import { ChangeDetectorRef } from '@angular/core';
+import { NgIf } from "../../../../node_modules/@angular/common/types/_common_module-chunk";
 
 @Component({
   selector: 'app-control-panel',
@@ -11,7 +12,9 @@ import { ChangeDetectorRef } from '@angular/core';
 })
 export class ControlPanel {
   connected = false;
-  ledOn = false;
+  led1On = false;
+  led2On = false;
+  led3On = false;
 
   dia = 0;
   mes = 0;
@@ -24,20 +27,34 @@ export class ControlPanel {
 
   constructor(private esp: EspService, private cdr: ChangeDetectorRef) {}
 
-  turnOn() {
-    this.esp.ligar().subscribe((resp) => {
+  turnOn(led: number) {
+    this.esp.ligar(led).subscribe((resp) => {
       console.log(resp);
-      this.ledOn = true;
-      console.log(this.ledOn);
+      if (led === 2) {
+        this.led1On = true;
+      }
+      if (led === 4) {
+        this.led2On = true;
+      }
+      if (led === 5) {
+        this.led3On = true;
+      }
       this.cdr.detectChanges();
     });
   }
 
-  turnOff() {
-    this.esp.desligar().subscribe((resp) => {
+  turnOff(led: number) {
+    this.esp.desligar(led).subscribe((resp) => {
       console.log(resp);
-      this.ledOn = false;
-      console.log(this.ledOn);
+      if (led === 2) {
+        this.led1On = false;
+      }
+      if (led === 4) {
+        this.led2On = false;
+      }
+      if (led === 5) {
+        this.led3On = false;
+      }
       this.cdr.detectChanges();
     });
   }
@@ -57,4 +74,3 @@ export class ControlPanel {
     });
   }
 }
-

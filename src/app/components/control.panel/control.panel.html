@@ -1,10 +1,25 @@
 <div class="container">
 
   <!-- Luz ligado -->
-  <div class="light" [class.on]="ledOn">Ligado</div>
+  <div class="light" [class.on]="led1On">Ligado</div>
 
-  <button (click)="turnOn()" class="btn">Ligar</button>
-  <button (click)="turnOff()" class="btn">Desligar</button>
+  @if (led1On) {
+    <button (click)="turnOff(2)" class="btn">Ligado 1</button>
+  } @else {
+    <button (click)="turnOn(2)" class="btn">Desligado 1</button>
+  }
+
+  @if (led2On) {
+    <button (click)="turnOff(4)" class="btn">Ligado 2</button>
+  } @else {
+    <button (click)="turnOn(4)" class="btn">Desligado 2</button>
+  }
+
+  @if (led3On) {
+    <button (click)="turnOff(5)" class="btn">Ligado 3</button>
+  } @else {
+    <button (click)="turnOn(5)" class="btn">Desligado 3</button>
+  }
 
   <h2>Definir Data</h2>
 

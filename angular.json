@@ -64,6 +64,9 @@
           "defaultConfiguration": "production"
         },
         "serve": {
+          "options": {
+            "allowedHosts": ["192.168.18.216", "localhost", "0.0.0.0"]
+          },
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
