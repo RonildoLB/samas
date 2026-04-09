@@ -3,6 +3,9 @@ import { EspService } from '../../services/esp.service';
 import { FormsModule } from '@angular/forms';
 import { ChangeDetectorRef } from '@angular/core';
 import { NgIf } from "../../../../node_modules/@angular/common/types/_common_module-chunk";
+import { OnInit, OnDestroy } from '@angular/core';
+import { timer, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-control-panel',
@@ -10,7 +13,7 @@ import { NgIf } from "../../../../node_modules/@angular/common/types/_common_mod
   templateUrl: './control.panel.html',
   styleUrl: './control.panel.scss',
 })
-export class ControlPanel {
+export class ControlPanel implements OnInit, OnDestroy {
   connected = false;
   led1On = false;
   led2On = false;
@@ -25,7 +28,41 @@ export class ControlPanel {
 
   horaRecebida: string | null = null;
 
+  private statusSubscription?: Subscription;
+
   constructor(private esp: EspService, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit() {
+    // timer(espera_inicial, periodo_de_repeticao)
+    this.statusSubscription = timer(0, 5000)
+      .pipe(
+        // switchMap cancela a requisição anterior se ela demorar mais que 5s
+        switchMap(() => this.esp.getStatus())
+      )
+      .subscribe({
+        next: (resp: any) => {
+          console.log('Status atualizado:', resp);
+          // Aqui você mapeia a resposta do novo JSON que fizemos no ESP
+          this.connected = resp.status.conectado_internet;
+          
+          // Formata a hora recebida para exibir na tela
+          const h = resp.hora;
+          this.horaRecebida = `${h.dia}/${h.mes}/${h.ano} ${h.hora}:${h.min}:${h.seg}`;
+          
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Erro ao buscar status:', err)
+      });
+  }
+
+  // Cancela o timer quando sair da página
+  ngOnDestroy() {
+    this.statusSubscription?.unsubscribe();
+  }
+
+  pegarStatus() {
+    this.esp.getStatus().subscribe(() => {})
+  }
 
   turnOn(led: number) {
     this.esp.ligar(led).subscribe((resp) => {

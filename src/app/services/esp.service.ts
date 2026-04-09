@@ -23,4 +23,8 @@ export class EspService {
   getTime() {
     return this.http.get(`${this.baseUrl}/gettime`);
   }
+
+  getStatus() {
+    return this.http.get(`${this.baseUrl}/status`);
+  }
 }
