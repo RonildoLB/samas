@@ -2,14 +2,15 @@ import { Component } from '@angular/core';
 import { EspService } from '../../services/esp.service';
 import { FormsModule } from '@angular/forms';
 import { ChangeDetectorRef } from '@angular/core';
-import { NgIf } from "../../../../node_modules/@angular/common/types/_common_module-chunk";
 import { OnInit, OnDestroy } from '@angular/core';
 import { timer, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-control-panel',
-  imports: [FormsModule],
+  standalone: true,
+  imports: [FormsModule, DecimalPipe],
   templateUrl: './control.panel.html',
   styleUrl: './control.panel.scss',
 })
@@ -27,6 +28,10 @@ export class ControlPanel implements OnInit, OnDestroy {
   seg = 0;
 
   horaRecebida: string | null = null;
+
+  horaLigar: string = '';   // Formato 'HH:mm' do input type="time"
+  horaDesligar: string = '';
+  agendamentos: any[] = [];
 
   private statusSubscription?: Subscription;
 
@@ -58,6 +63,51 @@ export class ControlPanel implements OnInit, OnDestroy {
   // Cancela o timer quando sair da página
   ngOnDestroy() {
     this.statusSubscription?.unsubscribe();
+  }
+
+  // --- CONTROLE DO MOTOR (PULSO) ---
+  acionarMotor(direcao: 'cw' | 'acw') {
+    this.esp.pulseMotor(direcao).subscribe(resp => {
+      console.log(`Motor acionado: ${direcao}`, resp);
+    });
+  }
+
+  // --- AGENDAMENTOS ---
+  carregarAgendamentos() {
+    this.esp.listarAgendamentos().subscribe((lista: any[]) => {
+      this.agendamentos = lista;
+      this.cdr.detectChanges();
+    });
+  }
+
+  salvarAgendamento() {
+    if (!this.horaLigar || !this.horaDesligar) {
+      alert('Preencha os horários de Ligar e Desligar.');
+      return;
+    }
+
+    // Processa "Ligar" (CW)
+    const [hrLigar, minLigar] = this.horaLigar.split(':').map(Number);
+    const idLigar = Math.floor(Math.random() * 10000); // Gera ID aleatório
+
+    this.esp.adicionarAgendamento(idLigar, hrLigar, minLigar, 'cw', 1).subscribe(() => {
+      
+      // Processa "Desligar" (ACW) logo em seguida
+      const [hrDesligar, minDesligar] = this.horaDesligar.split(':').map(Number);
+      const idDesligar = Math.floor(Math.random() * 10000);
+      
+      this.esp.adicionarAgendamento(idDesligar, hrDesligar, minDesligar, 'acw', 1).subscribe(() => {
+        this.horaLigar = '';
+        this.horaDesligar = '';
+        this.carregarAgendamentos(); // Atualiza a tabela
+      });
+    });
+  }
+
+  deletarAgendamento(id: number) {
+    this.esp.deletarAgendamento(id).subscribe(() => {
+      this.carregarAgendamentos();
+    });
   }
 
   pegarStatus() {

@@ -21,6 +21,51 @@
     <button (click)="turnOn(5)" class="btn">Desligado 3</button>
   }
 
+  <div class="card">
+    <h2>Controle de Irrigação (Motor)</h2>
+    <div class="botoes-motor">
+      <button class="btn btn-ligar" (click)="acionarMotor('cw')">LIGAR</button>
+      <button class="btn btn-desligar" (click)="acionarMotor('acw')">DESLIGAR</button>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="card">
+    <h2>Agendamento Automático</h2>
+    
+    <div class="agendamento-inputs">
+      <div class="campo-hora">
+        <label>Ligar às:</label>
+        <input type="time" [(ngModel)]="horaLigar">
+      </div>
+      
+      <div class="campo-hora">
+        <label>Desligar às:</label>
+        <input type="time" [(ngModel)]="horaDesligar">
+      </div>
+      
+      <button class="btn btn-salvar" (click)="salvarAgendamento()">Salvar</button>
+    </div>
+
+    @if (agendamentos.length > 0) {
+      <div class="lista-agendamentos">
+        <h3>Tarefas Programadas</h3>
+        <ul>
+          @for (tarefa of agendamentos; track tarefa.id) {
+            <li>
+              <span>
+                {{ tarefa.hr | number:'2.0-0' }}:{{ tarefa.min | number:'2.0-0' }} - 
+                {{ tarefa.dir === 'cw' ? 'LIGAR' : 'DESLIGAR' }}
+              </span>
+              <button class="btn-del" (click)="deletarAgendamento(tarefa.id)">Excluir</button>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </div>
+
   <h2>Definir Data</h2>
 
   <div class="campo">

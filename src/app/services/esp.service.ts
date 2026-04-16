@@ -27,4 +27,20 @@ export class EspService {
   getStatus() {
     return this.http.get(`${this.baseUrl}/status`);
   }
+
+  pulseMotor(dir: 'cw' | 'acw') {
+    return this.http.get(`${this.baseUrl}/pulse/${dir}`);
+  }
+
+  adicionarAgendamento(id: number, hr: number, min: number, dir: string, prio: number) {
+    return this.http.get(`${this.baseUrl}/program/add?id=${id}&hr=${hr}&min=${min}&dir=${dir}&prio=${prio}`);
+  }
+
+  listarAgendamentos() {
+    return this.http.get<any[]>(`${this.baseUrl}/program/list`);
+  }
+
+  deletarAgendamento(id: number) {
+    return this.http.get(`${this.baseUrl}/program/delete?id=${id}`);
+  }
 }
