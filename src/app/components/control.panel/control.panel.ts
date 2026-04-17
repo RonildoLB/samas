@@ -1,11 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { EspService } from '../../services/esp.service';
 import { FormsModule } from '@angular/forms';
-import { ChangeDetectorRef } from '@angular/core';
-import { OnInit, OnDestroy } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { timer, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-control-panel',
@@ -16,147 +14,153 @@ import { DecimalPipe } from '@angular/common';
 })
 export class ControlPanel implements OnInit, OnDestroy {
   connected = false;
-  led1On = false;
-  led2On = false;
-  led3On = false;
 
-  dia = 0;
-  mes = 0;
-  ano = 0;
-  hora = 0;
-  min = 0;
-  seg = 0;
-
+  // Data/Hora ESP
+  dataEsp: string = '';
+  horaEsp: string = '';
   horaRecebida: string | null = null;
 
-  horaLigar: string = '';   // Formato 'HH:mm' do input type="time"
+  // Agendamento
+  horaLigar: string = '';
   horaDesligar: string = '';
-  agendamentos: any[] = [];
+  agendamentosAgrupados: any[] = [];
+
+  // Motor / Animação
+  loadingCw: boolean = false;
+  loadingAcw: boolean = false;
+  ultimoMotor: 'cw' | 'acw' | null = null;
+  tempoProgressoMs: number = 2000; // Tempo do progresso em milissegundos (2 segundos)
 
   private statusSubscription?: Subscription;
 
   constructor(private esp: EspService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
-    // timer(espera_inicial, periodo_de_repeticao)
+    this.carregarAgendamentos();
+
     this.statusSubscription = timer(0, 5000)
-      .pipe(
-        // switchMap cancela a requisição anterior se ela demorar mais que 5s
-        switchMap(() => this.esp.getStatus())
-      )
+      .pipe(switchMap(() => this.esp.getStatus()))
       .subscribe({
         next: (resp: any) => {
-          console.log('Status atualizado:', resp);
-          // Aqui você mapeia a resposta do novo JSON que fizemos no ESP
-          this.connected = resp.status.conectado_internet;
-          
-          // Formata a hora recebida para exibir na tela
-          const h = resp.hora;
-          this.horaRecebida = `${h.dia}/${h.mes}/${h.ano} ${h.hora}:${h.min}:${h.seg}`;
-          
+          this.connected = resp.status?.conectado_internet || false;
+          if (resp.hora) {
+            this.horaRecebida = this.formatarHora(resp.hora);
+          }
           this.cdr.detectChanges();
         },
         error: (err) => console.error('Erro ao buscar status:', err)
       });
   }
 
-  // Cancela o timer quando sair da página
   ngOnDestroy() {
     this.statusSubscription?.unsubscribe();
   }
 
-  // --- CONTROLE DO MOTOR (PULSO) ---
-  acionarMotor(direcao: 'cw' | 'acw') {
-    this.esp.pulseMotor(direcao).subscribe(resp => {
-      console.log(`Motor acionado: ${direcao}`, resp);
-    });
+  // Formatação padronizada (DD/MM/YYYY HH:mm:ss)
+  private formatarHora(h: any): string {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(h.dia)}/${pad(h.mes)}/${h.ano} ${pad(h.hora)}:${pad(h.min)}:${pad(h.seg)}`;
   }
 
-  // --- AGENDAMENTOS ---
+  // --- CONTROLE DO MOTOR COM PROGRESSO ---
+  acionarMotorProgresso(direcao: 'cw' | 'acw') {
+    if (this.loadingCw || this.loadingAcw) return; // Evita duplo clique
+
+    if (direcao === 'cw') this.loadingCw = true;
+    if (direcao === 'acw') this.loadingAcw = true;
+
+    // Inicia a contagem da barra de progresso antes de executar
+    setTimeout(() => {
+      this.esp.pulseMotor(direcao).subscribe(resp => {
+        console.log(`Motor acionado: ${direcao}`, resp);
+        this.ultimoMotor = direcao; // Alterna a inatividade
+        this.loadingCw = false;
+        this.loadingAcw = false;
+        this.cdr.detectChanges();
+      });
+    }, this.tempoProgressoMs);
+  }
+
+  // --- AGENDAMENTOS EM DUPLAS ---
   carregarAgendamentos() {
     this.esp.listarAgendamentos().subscribe((lista: any[]) => {
-      this.agendamentos = lista;
+      this.agendamentosAgrupados = this.agruparEmDuplas(lista);
       this.cdr.detectChanges();
     });
   }
 
-  salvarAgendamento() {
+  // Agrupa os envios individuais em cards de dupla Ligar/Desligar
+  private agruparEmDuplas(lista: any[]): any[] {
+    const duplas = [];
+    for (let i = 0; i < lista.length; i += 2) {
+      const t1 = lista[i];
+      const t2 = lista[i + 1];
+      
+      if (t1 && t2) {
+        duplas.push({
+          idLigar: t1.dir === 'cw' ? t1.id : t2.id,
+          idDesligar: t1.dir === 'acw' ? t1.id : t2.id,
+          hrLigar: t1.dir === 'cw' ? t1.hr : t2.hr,
+          minLigar: t1.dir === 'cw' ? t1.min : t2.min,
+          hrDesligar: t1.dir === 'acw' ? t1.hr : t2.hr,
+          minDesligar: t1.dir === 'acw' ? t1.min : t2.min
+        });
+      }
+    }
+    return duplas;
+  }
+
+  adicionarAgendamento() {
     if (!this.horaLigar || !this.horaDesligar) {
       alert('Preencha os horários de Ligar e Desligar.');
       return;
     }
 
-    // Processa "Ligar" (CW)
     const [hrLigar, minLigar] = this.horaLigar.split(':').map(Number);
-    const idLigar = Math.floor(Math.random() * 10000); // Gera ID aleatório
+    const idLigar = Math.floor(Math.random() * 10000);
 
     this.esp.adicionarAgendamento(idLigar, hrLigar, minLigar, 'cw', 1).subscribe(() => {
       
-      // Processa "Desligar" (ACW) logo em seguida
       const [hrDesligar, minDesligar] = this.horaDesligar.split(':').map(Number);
       const idDesligar = Math.floor(Math.random() * 10000);
       
       this.esp.adicionarAgendamento(idDesligar, hrDesligar, minDesligar, 'acw', 1).subscribe(() => {
         this.horaLigar = '';
         this.horaDesligar = '';
-        this.carregarAgendamentos(); // Atualiza a tabela
+        this.carregarAgendamentos();
       });
     });
   }
 
-  deletarAgendamento(id: number) {
-    this.esp.deletarAgendamento(id).subscribe(() => {
-      this.carregarAgendamentos();
+  deletarDupla(idLigar: number, idDesligar: number) {
+    this.esp.deletarAgendamento(idLigar).subscribe(() => {
+      this.esp.deletarAgendamento(idDesligar).subscribe(() => {
+        this.carregarAgendamentos();
+      });
     });
   }
 
-  pegarStatus() {
-    this.esp.getStatus().subscribe(() => {})
-  }
-
-  turnOn(led: number) {
-    this.esp.ligar(led).subscribe((resp) => {
-      console.log(resp);
-      if (led === 2) {
-        this.led1On = true;
-      }
-      if (led === 4) {
-        this.led2On = true;
-      }
-      if (led === 5) {
-        this.led3On = true;
-      }
-      this.cdr.detectChanges();
-    });
-  }
-
-  turnOff(led: number) {
-    this.esp.desligar(led).subscribe((resp) => {
-      console.log(resp);
-      if (led === 2) {
-        this.led1On = false;
-      }
-      if (led === 4) {
-        this.led2On = false;
-      }
-      if (led === 5) {
-        this.led3On = false;
-      }
-      this.cdr.detectChanges();
-    });
-  }
-
+  // --- RELÓGIO DO SISTEMA (ESP32) ---
   enviarDataHora() {
-    this.esp.setTime(this.dia, this.mes, this.ano, this.hora, this.min, this.seg)
-      .subscribe(resp => {
-        console.log("Time updated:", resp);
-      });
+    if (!this.dataEsp || !this.horaEsp) {
+      alert('Preencha a data e a hora.');
+      return;
+    }
+
+    const [ano, mes, dia] = this.dataEsp.split('-').map(Number);
+    const [hora, min, seg] = this.horaEsp.split(':').map(Number);
+    const s = seg || 0; 
+
+    this.esp.setTime(dia, mes, ano, hora, min, s).subscribe(resp => {
+      console.log("Relógio sincronizado");
+      this.lerHoraEsp();
+    });
   }
 
   lerHoraEsp() {
-    this.esp.getTime().subscribe(t => {
-      console.log("ESP TIME:", t);
-      this.horaRecebida = JSON.stringify(t);
+    this.esp.getTime().subscribe((t: any) => {
+      // Usa a mesma formatação do status
+      this.horaRecebida = this.formatarHora(t);
       this.cdr.detectChanges();
     });
   }

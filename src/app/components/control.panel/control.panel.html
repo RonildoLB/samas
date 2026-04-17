@@ -1,120 +1,106 @@
-<div class="container">
-
-  <!-- Luz ligado -->
-  <div class="light" [class.on]="led1On">Ligado</div>
-
-  @if (led1On) {
-    <button (click)="turnOff(2)" class="btn">Ligado 1</button>
-  } @else {
-    <button (click)="turnOn(2)" class="btn">Desligado 1</button>
-  }
-
-  @if (led2On) {
-    <button (click)="turnOff(4)" class="btn">Ligado 2</button>
-  } @else {
-    <button (click)="turnOn(4)" class="btn">Desligado 2</button>
-  }
-
-  @if (led3On) {
-    <button (click)="turnOff(5)" class="btn">Ligado 3</button>
-  } @else {
-    <button (click)="turnOn(5)" class="btn">Desligado 3</button>
-  }
+<div class="app-container">
+  <header class="app-header">
+    <h1>Controle de Irrigação</h1>
+  </header>
 
   <div class="card">
-    <h2>Controle de Irrigação (Motor)</h2>
-    <div class="botoes-motor">
-      <button class="btn btn-ligar" (click)="acionarMotor('cw')">LIGAR</button>
-      <button class="btn btn-desligar" (click)="acionarMotor('acw')">DESLIGAR</button>
+    <div class="card-header bg-green">Motor / Válvula</div>
+    <div class="card-body">
+      
+      <div class="icon-container green-text">
+        <img [src]="ultimoMotor === 'cw' ? 'assets/sprinkleron.gif' : 'assets/sprinkleroff.gif'" 
+            alt="Status da Irrigação" 
+            class="gif-irrigacao">
+      </div>
+      
+      <div class="button-group">
+        <button class="btn btn-success relative" 
+                [disabled]="ultimoMotor === 'cw' || loadingAcw"
+                (click)="acionarMotorProgresso('cw')">
+          <span class="btn-text">LIGAR</span>
+          <div class="progress-bar" [class.active-progress]="loadingCw"></div>
+        </button>
+
+        <button class="btn btn-danger relative" 
+                [disabled]="ultimoMotor === 'acw' || loadingCw"
+                (click)="acionarMotorProgresso('acw')">
+          <span class="btn-text">DESLIGAR</span>
+          <div class="progress-bar" [class.active-progress]="loadingAcw"></div>
+        </button>
+      </div>
+
+      <div class="schedule-section">
+        <div class="schedule-title">
+          <img src="assets/time-management.png" alt="Agendamento">
+          Agendamento Automático
+        </div>
+        <div class="schedule-controls">
+          <div class="time-input">
+            <label>Ligar às:</label>
+            <input type="time" [(ngModel)]="horaLigar">
+          </div>
+          <div class="time-input">
+            <label>Desligar às:</label>
+            <input type="time" [(ngModel)]="horaDesligar">
+          </div>
+          
+          <button class="btn-add" (click)="adicionarAgendamento()">
+            <span class="material-icons">+</span>
+          </button>
+        </div>
+
+        @if (agendamentosAgrupados.length > 0) {
+          <div class="schedule-list">
+            <ul>
+              @for (par of agendamentosAgrupados; track par.idLigar) {
+                <li class="pair-card">
+                  <div class="pair-info">
+                    <div class="time-row">
+                      <span class="badge badge-green">LIGAR</span>
+                      <strong>{{ par.hrLigar | number:'2.0-0' }}:{{ par.minLigar | number:'2.0-0' }}</strong>
+                    </div>
+                    <div class="time-row">
+                      <span class="badge badge-red">DESLIGAR</span>
+                      <strong>{{ par.hrDesligar | number:'2.0-0' }}:{{ par.minDesligar | number:'2.0-0' }}</strong>
+                    </div>
+                  </div>
+                  <button class="btn-icon" (click)="deletarDupla(par.idLigar, par.idDesligar)">Excluir</button>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
     </div>
   </div>
 
-  <hr>
-
   <div class="card">
-    <h2>Agendamento Automático</h2>
-    
-    <div class="agendamento-inputs">
-      <div class="campo-hora">
-        <label>Ligar às:</label>
-        <input type="time" [(ngModel)]="horaLigar">
-      </div>
+    <div class="card-header bg-gray">Relógio do Sistema (ESP32)</div>
+    <div class="card-body">
       
-      <div class="campo-hora">
-        <label>Desligar às:</label>
-        <input type="time" [(ngModel)]="horaDesligar">
+      <div class="grid-inputs-2">
+        <div class="time-input">
+          <label>Data</label>
+          <input type="date" [(ngModel)]="dataEsp"> 
+        </div>
+        <div class="time-input">
+          <label>Hora</label>
+          <input type="time" step="1" [(ngModel)]="horaEsp">
+        </div>
       </div>
-      
-      <button class="btn btn-salvar" (click)="salvarAgendamento()">Salvar</button>
+
+      <div class="button-group mt-16">
+        <button class="btn btn-outline" (click)="enviarDataHora()">Sincronizar Relógio</button>
+        <button class="btn btn-outline" (click)="lerHoraEsp()">Ler Hora Atual</button>
+      </div>
+
+      @if (horaRecebida) {
+        <div class="result-box">
+          <small>Hora no dispositivo:</small>
+          <strong>{{ horaRecebida }}</strong>
+        </div>
+      }
     </div>
-
-    @if (agendamentos.length > 0) {
-      <div class="lista-agendamentos">
-        <h3>Tarefas Programadas</h3>
-        <ul>
-          @for (tarefa of agendamentos; track tarefa.id) {
-            <li>
-              <span>
-                {{ tarefa.hr | number:'2.0-0' }}:{{ tarefa.min | number:'2.0-0' }} - 
-                {{ tarefa.dir === 'cw' ? 'LIGAR' : 'DESLIGAR' }}
-              </span>
-              <button class="btn-del" (click)="deletarAgendamento(tarefa.id)">Excluir</button>
-            </li>
-          }
-        </ul>
-      </div>
-    }
-  </div>
-
-  <h2>Definir Data</h2>
-
-  <div class="campo">
-    <label>Dia:</label>
-    <input type="number" [(ngModel)]="dia">
-  </div>
-
-  <div class="campo">
-    <label>Mês:</label>
-    <input type="number" [(ngModel)]="mes">
-  </div>
-
-  <div class="campo">
-    <label>Ano:</label>
-    <input type="number" [(ngModel)]="ano">
-  </div>
-
-  <h2>Definir Horário</h2>
-
-  <div class="campo">
-    <label>Hora:</label>
-    <input type="number" [(ngModel)]="hora">
-  </div>
-
-  <div class="campo">
-    <label>Minuto:</label>
-    <input type="number" [(ngModel)]="min">
-  </div>
-
-  <div class="campo">
-    <label>Segundo:</label>
-    <input type="number" [(ngModel)]="seg">
-  </div>
-
-  <button class="btn" (click)="enviarDataHora()">
-    Enviar Data/Hora para ESP
-  </button>
-
-  <hr>
-
-  <h2>Consultar Hora do ESP</h2>
-
-  <button class="btn" (click)="lerHoraEsp()">
-    Ler Hora do ESP
-  </button>
-
-  <div class="resultado">
-    <h3>Hora recebida:</h3>
-    <p>{{ horaRecebida }}</p>
   </div>
 
 </div>
