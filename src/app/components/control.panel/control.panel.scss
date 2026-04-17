@@ -4,10 +4,15 @@
   margin: 0 auto;
   background: #f0f2f5;
   min-height: 100vh;
-  padding-bottom: 24px;
 }
 
 .app-header {
+  /* Novas propriedades para fixar o cabeçalho */
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* Garante que fique por cima dos outros cards */
+  
+  /* Propriedades que você já tinha */
   background: #1e8e3e;
   color: white;
   text-align: center;
