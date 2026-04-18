@@ -18,6 +18,8 @@ export class ControlPanel implements OnInit, OnDestroy {
   // Data/Hora ESP
   dataEsp: string = '';
   horaEsp: string = '';
+  ssidEsp: string = '';
+  passEsp: string = '';
   horaRecebida: string | null = null;
 
   // Agendamento
@@ -154,6 +156,20 @@ export class ControlPanel implements OnInit, OnDestroy {
     this.esp.setTime(dia, mes, ano, hora, min, s).subscribe(resp => {
       console.log("Relógio sincronizado");
       this.lerHoraEsp();
+    });
+  }
+
+  atualizarWifi() {
+    if (!this.ssidEsp || !this.passEsp) {
+      alert('Preencha os campos.');
+      return;
+    }
+
+    const ssid = this.ssidEsp;
+    const pass = this.passEsp; 
+
+    this.esp.setWifi(ssid, pass).subscribe(resp => {
+      console.log("Wifi atualizado");
     });
   }
 

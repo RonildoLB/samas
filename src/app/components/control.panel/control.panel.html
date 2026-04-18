@@ -14,16 +14,27 @@
       </div>
       
       <div class="button-group">
-        <button class="btn btn-success relative" 
-                [disabled]="ultimoMotor === 'cw' || loadingAcw"
-                (click)="acionarMotorProgresso('cw')">
+        <!-- <button class="btn btn-success relative" 
+                [disabled]="ultimoMotor === 'acw' || loadingAcw"
+                (click)="acionarMotorProgresso('acw')">
           <span class="btn-text">LIGAR</span>
           <div class="progress-bar" [class.active-progress]="loadingCw"></div>
         </button>
 
         <button class="btn btn-danger relative" 
-                [disabled]="ultimoMotor === 'acw' || loadingCw"
+                [disabled]="ultimoMotor === 'cw' || loadingCw"
+                (click)="acionarMotorProgresso('cw')">
+          <span class="btn-text">DESLIGAR</span>
+          <div class="progress-bar" [class.active-progress]="loadingAcw"></div>
+        </button> -->
+        <button class="btn btn-success relative" 
                 (click)="acionarMotorProgresso('acw')">
+          <span class="btn-text">LIGAR</span>
+          <div class="progress-bar" [class.active-progress]="loadingCw"></div>
+        </button>
+
+        <button class="btn btn-danger relative" 
+                (click)="acionarMotorProgresso('cw')">
           <span class="btn-text">DESLIGAR</span>
           <div class="progress-bar" [class.active-progress]="loadingAcw"></div>
         </button>
@@ -88,9 +99,20 @@
           <input type="time" step="1" [(ngModel)]="horaEsp">
         </div>
       </div>
+      <div class="grid-inputs-2">
+        <div class="time-input">
+          <label>SSID</label>
+          <input type="text" [(ngModel)]="ssidEsp"> 
+        </div>
+        <div class="time-input">
+          <label>Senha</label>
+          <input type="text" step="1" [(ngModel)]="passEsp">
+        </div>
+      </div>
 
       <div class="button-group mt-16">
         <button class="btn btn-outline" (click)="enviarDataHora()">Sincronizar Relógio</button>
+        <button class="btn btn-outline" (click)="atualizarWifi()">Atualizar WiFi</button>
         <button class="btn btn-outline" (click)="lerHoraEsp()">Ler Hora Atual</button>
       </div>
 

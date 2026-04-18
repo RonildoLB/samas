@@ -20,6 +20,11 @@ export class EspService {
   return this.http.get(url, { responseType: 'text' });
   }
 
+  setWifi(ssid: string, pass: string) {
+  const url = `${this.baseUrl}/wifi/update?ssid=${ssid}&pass=${pass}`;
+  return this.http.get(url, { responseType: 'text' });
+  }
+
   getTime() {
     return this.http.get(`${this.baseUrl}/gettime`);
   }
