@@ -15,6 +15,13 @@ import { switchMap } from 'rxjs/operators';
 export class ControlPanel implements OnInit, OnDestroy {
   connected = false;
 
+  statusEsp = {
+    cliente_conectado: false,
+    conectado_wifi: false,
+    conectado_internet: false,
+    relogio_atualizado: false
+  };
+
   // Data/Hora ESP
   dataEsp: string = '';
   horaEsp: string = '';
@@ -31,7 +38,7 @@ export class ControlPanel implements OnInit, OnDestroy {
   loadingCw: boolean = false;
   loadingAcw: boolean = false;
   ultimoMotor: 'cw' | 'acw' | null = null;
-  tempoProgressoMs: number = 2000; // Tempo do progresso em milissegundos (2 segundos)
+  tempoProgressoMs: number = 5000; // Tempo do progresso em milissegundos (2 segundos)
 
   private statusSubscription?: Subscription;
 
@@ -44,6 +51,7 @@ export class ControlPanel implements OnInit, OnDestroy {
       .pipe(switchMap(() => this.esp.getStatus()))
       .subscribe({
         next: (resp: any) => {
+          this.statusEsp = resp.status;
           this.connected = resp.status?.conectado_internet || false;
           if (resp.hora) {
             this.horaRecebida = this.formatarHora(resp.hora);
@@ -161,7 +169,7 @@ export class ControlPanel implements OnInit, OnDestroy {
 
   atualizarWifi() {
     if (!this.ssidEsp || !this.passEsp) {
-      alert('Preencha os campos.');
+      alert('Preencha os campos SSID e Senha.');
       return;
     }
 

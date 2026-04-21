@@ -7,10 +7,37 @@
     <div class="card-header bg-green">Motor / Válvula</div>
     <div class="card-body">
       
-      <div class="icon-container green-text">
+      <div class="icon-container green-text" style="display: inline-flex; gap: 1rem; padding-left: 0.5rem;">
         <img [src]="ultimoMotor === 'cw' ? 'assets/sprinkleron.gif' : 'assets/sprinkleroff.gif'" 
             alt="Status da Irrigação" 
             class="gif-irrigacao">
+
+        <!-- <div style="display: grid;">
+          <span>Rede Hotspot:</span>
+          <span>Conexão Wi-Fi:</span>
+          <span>Relógio atualizado:</span>
+        </div> -->
+
+        <div style="display: grid; font-size: 0.825em; color: #555; text-align: left;">
+          <span>Rede Hotspot: 
+            <strong [style.color]="statusEsp.cliente_conectado ? '#1a73e8' : '#666'">
+              {{ statusEsp.cliente_conectado ? 'Cliente conectado' : 'Ligada' }}
+            </strong>
+          </span>
+          
+          <span>Conexão Wi-Fi: 
+            <strong [style.color]="statusEsp.conectado_internet ? '#28a745' : (statusEsp.conectado_wifi ? '#ff9800' : '#666')">
+              {{ statusEsp.conectado_internet ? 'Conectado c/ internet' : (statusEsp.conectado_wifi ? 'Conectado' : 'Tentando conectar...') }}
+            </strong>
+          </span>
+          
+          <span>Relógio atualizado: 
+            <strong [style.color]="statusEsp.relogio_atualizado ? '#133243' : '#dc3545'">
+              {{ statusEsp.relogio_atualizado ? 'Sim' : 'Não' }}
+            </strong>
+          </span>
+        </div>
+        
       </div>
       
       <div class="button-group">
@@ -88,8 +115,26 @@
   <div class="card">
     <div class="card-header bg-gray">Relógio do Sistema (ESP32)</div>
     <div class="card-body">
-      
+
+      <div class="time-input" style="padding-bottom: 4px;">
+          <label>SSID</label>
+          <input type="text" [(ngModel)]="ssidEsp" style="text-align: left;"> 
+        </div>
       <div class="grid-inputs-2">
+        
+        <div class="time-input">
+          <label>Senha</label>
+          <input type="text" step="1" [(ngModel)]="passEsp" style="text-align: left;">
+        </div>
+        <div style="display: flex; align-items: end;">
+          <button class="btn btn-outline" (click)="atualizarWifi()">Atualizar WiFi</button>
+        </div>
+        
+      </div>
+      
+      <div class="grid-inputs-2" style="border-top: 1px solid #f1f3f4;
+    margin-top: 1rem;
+    padding-top: 0.75rem;">
         <div class="time-input">
           <label>Data</label>
           <input type="date" [(ngModel)]="dataEsp"> 
@@ -99,20 +144,10 @@
           <input type="time" step="1" [(ngModel)]="horaEsp">
         </div>
       </div>
-      <div class="grid-inputs-2">
-        <div class="time-input">
-          <label>SSID</label>
-          <input type="text" [(ngModel)]="ssidEsp"> 
-        </div>
-        <div class="time-input">
-          <label>Senha</label>
-          <input type="text" step="1" [(ngModel)]="passEsp">
-        </div>
-      </div>
+      
 
       <div class="button-group mt-16">
         <button class="btn btn-outline" (click)="enviarDataHora()">Sincronizar Relógio</button>
-        <button class="btn btn-outline" (click)="atualizarWifi()">Atualizar WiFi</button>
         <button class="btn btn-outline" (click)="lerHoraEsp()">Ler Hora Atual</button>
       </div>
 
@@ -122,6 +157,8 @@
           <strong>{{ horaRecebida }}</strong>
         </div>
       }
+
+      
     </div>
   </div>
 
