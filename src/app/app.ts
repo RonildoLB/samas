@@ -4,7 +4,7 @@ import { ControlPanel } from "./components/control.panel/control.panel";
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ControlPanel],
+  imports: [ControlPanel],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

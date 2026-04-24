@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { EspService } from '../../services/esp.service';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
@@ -19,7 +20,8 @@ export class ControlPanel implements OnInit, OnDestroy {
     cliente_conectado: false,
     conectado_wifi: false,
     conectado_internet: false,
-    relogio_atualizado: false
+    relogio_atualizado: false,
+    valvula_aberta: false
   };
 
   // Data/Hora ESP
@@ -37,29 +39,38 @@ export class ControlPanel implements OnInit, OnDestroy {
   // Motor / Animação
   loadingCw: boolean = false;
   loadingAcw: boolean = false;
-  ultimoMotor: 'cw' | 'acw' | null = null;
+  valvulaAberta: boolean = false;
   tempoProgressoMs: number = 5000; // Tempo do progresso em milissegundos (2 segundos)
+
+  buttonTextLigar: string = 'LIGAR';
+  buttonTextDesligar: string = 'DESLIGAR';
 
   private statusSubscription?: Subscription;
 
-  constructor(private esp: EspService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private esp: EspService, 
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngOnInit() {
-    this.carregarAgendamentos();
+      this.carregarAgendamentos();
 
-    this.statusSubscription = timer(0, 5000)
-      .pipe(switchMap(() => this.esp.getStatus()))
-      .subscribe({
-        next: (resp: any) => {
-          this.statusEsp = resp.status;
-          this.connected = resp.status?.conectado_internet || false;
-          if (resp.hora) {
-            this.horaRecebida = this.formatarHora(resp.hora);
-          }
-          this.cdr.detectChanges();
-        },
-        error: (err) => console.error('Erro ao buscar status:', err)
-      });
+      this.statusSubscription = timer(0, 5000)
+        .pipe(switchMap(() => this.esp.getStatus()))
+        .subscribe({
+          next: (resp: any) => {
+            this.statusEsp = resp.status;
+            this.ssidEsp = resp.wifi.ssid;
+            this.passEsp = resp.wifi.pass;
+            this.connected = resp.status?.conectado_internet || false;
+            if (resp.hora) {
+              this.horaRecebida = this.formatarHora(resp.hora);
+            }
+            this.cdr.detectChanges();
+          },
+          error: (err) => console.error('Erro ao buscar status:', err)
+        });
   }
 
   ngOnDestroy() {
@@ -74,21 +85,41 @@ export class ControlPanel implements OnInit, OnDestroy {
 
   // --- CONTROLE DO MOTOR COM PROGRESSO ---
   acionarMotorProgresso(direcao: 'cw' | 'acw') {
-    if (this.loadingCw || this.loadingAcw) return; // Evita duplo clique
+    if (this.loadingCw || this.loadingAcw) return; // Trava de segurança
 
-    if (direcao === 'cw') this.loadingCw = true;
-    if (direcao === 'acw') this.loadingAcw = true;
+    if (direcao === 'acw') {
+      this.buttonTextLigar = 'LIGANDO...';
+      this.loadingAcw = true;
+    } else {
+      this.buttonTextDesligar = 'DESLIGANDO...';
+      this.loadingCw = true;
+    }
 
-    // Inicia a contagem da barra de progresso antes de executar
-    setTimeout(() => {
-      this.esp.pulseMotor(direcao).subscribe(resp => {
+    this.esp.pulseMotor(direcao).subscribe({
+      next: (resp) => {
         console.log(`Motor acionado: ${direcao}`, resp);
-        this.ultimoMotor = direcao; // Alterna a inatividade
+        
+        // Após 5 segundos, reseta tudo e libera os botões
+        setTimeout(() => {
+          this.loadingCw = false;
+          this.loadingAcw = false;
+          this.buttonTextLigar = 'LIGAR';
+          this.buttonTextDesligar = 'DESLIGAR';
+          this.cdr.detectChanges();
+        }, this.tempoProgressoMs);
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erro ao acionar motor:', err);
+        // Em caso de erro, libera os botões imediatamente
         this.loadingCw = false;
         this.loadingAcw = false;
+        this.buttonTextLigar = 'LIGAR';
+        this.buttonTextDesligar = 'DESLIGAR';
         this.cdr.detectChanges();
-      });
-    }, this.tempoProgressoMs);
+      }
+    });
   }
 
   // --- AGENDAMENTOS EM DUPLAS ---

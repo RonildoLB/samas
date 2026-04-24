@@ -8,15 +8,9 @@
     <div class="card-body">
       
       <div class="icon-container green-text" style="display: inline-flex; gap: 1rem; padding-left: 0.5rem;">
-        <img [src]="ultimoMotor === 'cw' ? 'assets/sprinkleron.gif' : 'assets/sprinkleroff.gif'" 
-            alt="Status da Irrigação" 
-            class="gif-irrigacao">
-
-        <!-- <div style="display: grid;">
-          <span>Rede Hotspot:</span>
-          <span>Conexão Wi-Fi:</span>
-          <span>Relógio atualizado:</span>
-        </div> -->
+        <img [src]="statusEsp.valvula_aberta ? 'assets/sprinkleron.gif' : 'assets/sprinkleroff.gif'" 
+             alt="Status da Irrigação" 
+             class="gif-irrigacao">
 
         <div style="display: grid; font-size: 0.825em; color: #555; text-align: left;">
           <span>Rede Hotspot: 
@@ -27,43 +21,31 @@
           
           <span>Conexão Wi-Fi: 
             <strong [style.color]="statusEsp.conectado_internet ? '#28a745' : (statusEsp.conectado_wifi ? '#ff9800' : '#666')">
-              {{ statusEsp.conectado_internet ? 'Conectado c/ internet' : (statusEsp.conectado_wifi ? 'Conectado' : 'Tentando conectar...') }}
+              {{ statusEsp.conectado_internet ? 'Conectado com internet' : (statusEsp.conectado_wifi ? 'Conectado' : 'Tentando conectar...') }}
             </strong>
           </span>
           
           <span>Relógio atualizado: 
-            <strong [style.color]="statusEsp.relogio_atualizado ? '#133243' : '#dc3545'">
+            <strong [style.color]="statusEsp.relogio_atualizado ? '#1908af' : '#dc3545'">
               {{ statusEsp.relogio_atualizado ? 'Sim' : 'Não' }}
             </strong>
           </span>
         </div>
-        
       </div>
       
       <div class="button-group">
-        <!-- <button class="btn btn-success relative" 
-                [disabled]="ultimoMotor === 'acw' || loadingAcw"
-                (click)="acionarMotorProgresso('acw')">
-          <span class="btn-text">LIGAR</span>
-          <div class="progress-bar" [class.active-progress]="loadingCw"></div>
-        </button>
-
-        <button class="btn btn-danger relative" 
-                [disabled]="ultimoMotor === 'cw' || loadingCw"
-                (click)="acionarMotorProgresso('cw')">
-          <span class="btn-text">DESLIGAR</span>
-          <div class="progress-bar" [class.active-progress]="loadingAcw"></div>
-        </button> -->
         <button class="btn btn-success relative" 
+                [disabled]="loadingAcw || loadingCw"
                 (click)="acionarMotorProgresso('acw')">
-          <span class="btn-text">LIGAR</span>
-          <div class="progress-bar" [class.active-progress]="loadingCw"></div>
+          <span class="btn-text">{{ buttonTextLigar }}</span>
+          <div class="progress-bar" [class.active-progress]="loadingAcw"></div>
         </button>
 
         <button class="btn btn-danger relative" 
+                [disabled]="loadingAcw || loadingCw"
                 (click)="acionarMotorProgresso('cw')">
-          <span class="btn-text">DESLIGAR</span>
-          <div class="progress-bar" [class.active-progress]="loadingAcw"></div>
+          <span class="btn-text">{{ buttonTextDesligar }}</span>
+          <div class="progress-bar" [class.active-progress]="loadingCw"></div>
         </button>
       </div>
 
