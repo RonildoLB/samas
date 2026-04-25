@@ -1,6 +1,8 @@
 <div class="app-container">
-  <header class="app-header">
-    <h1>Controle de Irrigação</h1>
+  <header class="app-header" 
+  style="display: flex; justify-content: center; align-items: center; gap: 5px;">
+    <img src="assets/SamasLogo2.png" style="width: 30px;">
+    <h1>Samas App</h1>
   </header>
 
   <div class="card">
@@ -95,53 +97,60 @@
   </div>
 
   <div class="card">
-    <div class="card-header bg-gray">Relógio do Sistema (ESP32)</div>
-    <div class="card-body">
-
-      <div class="time-input" style="padding-bottom: 4px;">
-          <label>SSID</label>
-          <input type="text" [(ngModel)]="ssidEsp" style="text-align: left;"> 
-        </div>
-      <div class="grid-inputs-2">
-        
-        <div class="time-input">
-          <label>Senha</label>
-          <input type="text" step="1" [(ngModel)]="passEsp" style="text-align: left;">
-        </div>
-        <div style="display: flex; align-items: end;">
-          <button class="btn btn-outline" (click)="atualizarWifi()">Atualizar WiFi</button>
-        </div>
-        
-      </div>
-      
-      <div class="grid-inputs-2" style="border-top: 1px solid #f1f3f4;
-    margin-top: 1rem;
-    padding-top: 0.75rem;">
-        <div class="time-input">
-          <label>Data</label>
-          <input type="date" [(ngModel)]="dataEsp"> 
-        </div>
-        <div class="time-input">
-          <label>Hora</label>
-          <input type="time" step="1" [(ngModel)]="horaEsp">
-        </div>
-      </div>
-      
-
-      <div class="button-group mt-16">
-        <button class="btn btn-outline" (click)="enviarDataHora()">Sincronizar Relógio</button>
-        <button class="btn btn-outline" (click)="lerHoraEsp()">Ler Hora Atual</button>
-      </div>
-
-      @if (horaRecebida) {
-        <div class="result-box">
-          <small>Hora no dispositivo:</small>
-          <strong>{{ horaRecebida }}</strong>
-        </div>
-      }
-
-      
+    <div class="card-header bg-gray" 
+         style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;"
+         (click)="mostrarRelogioCard = !mostrarRelogioCard">
+      <span>Configurações</span>
+      <span style="font-size: 1.2rem; transition: transform 0.3s;">
+        {{ mostrarRelogioCard ? '▲' : '▼' }}
+      </span>
     </div>
+
+    @if (mostrarRelogioCard) {
+      <div class="card-body">
+
+        <div class="time-input" style="padding-bottom: 4px;">
+            <label>SSID</label>
+            <input type="text" [(ngModel)]="ssidEsp" style="text-align: left;"> 
+          </div>
+        <div class="grid-inputs-2">
+          
+          <div class="time-input">
+            <label>Senha</label>
+            <input type="text" step="1" [(ngModel)]="passEsp" style="text-align: left;">
+          </div>
+          <div style="display: flex; align-items: end;">
+            <button class="btn btn-outline" (click)="atualizarWifi()">Atualizar WiFi</button>
+          </div>
+          
+        </div>
+        
+        <div class="grid-inputs-2" style="border-top: 1px solid #f1f3f4; margin-top: 1rem; padding-top: 0.75rem;">
+          <div class="time-input">
+            <label>Data</label>
+            <input type="date" [(ngModel)]="dataEsp"> 
+          </div>
+          <div class="time-input">
+            <label>Hora</label>
+            <input type="time" step="1" [(ngModel)]="horaEsp">
+          </div>
+        </div>
+        
+
+        <div class="button-group mt-16">
+          <button class="btn btn-outline" (click)="enviarDataHora()">Sincronizar Relógio</button>
+          <button class="btn btn-outline" (click)="lerHoraEsp()">Ler Hora Atual</button>
+        </div>
+
+        @if (horaRecebida) {
+          <div class="result-box">
+            <small>Hora no dispositivo:</small>
+            <strong>{{ horaRecebida }}</strong>
+          </div>
+        }
+        
+      </div>
+    }
   </div>
 
 </div>

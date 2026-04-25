@@ -35,6 +35,8 @@ export class ControlPanel implements OnInit, OnDestroy {
   horaLigar: string = '';
   horaDesligar: string = '';
   agendamentosAgrupados: any[] = [];
+  // Controle de visibilidade
+  mostrarRelogioCard: boolean = false;
 
   // Motor / Animação
   loadingCw: boolean = false;
